@@ -1,7 +1,6 @@
-#![allow(unused_variables)]
 use std::collections::HashMap;
 use std::fmt::Debug;
-use serde_json::{Value};
+use serde_json::Value;
 
 #[derive(Debug)]
 pub struct Record {
