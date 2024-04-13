@@ -3,27 +3,13 @@ use serde_json::{Result, Value};
 use std::collections::HashMap;
 use std::fmt::Debug;
 
+mod state;
+use crate::state::{Table,Record};
 // #[derive(Debug)]
 // struct Field {
 //     name: String,
 //     value: String,
 // }
-
-#[derive(Debug)]
-struct Record {
-    fields: HashMap<String, Value>,
-}
-
-#[derive(Debug)]
-struct Table {
-    name: String,
-    records: Vec<Record>,
-}
-
-#[derive(Debug)]
-struct State {
-    tables: Vec<Table>,
-}
 
 fn read_file() -> Result<Table> {
     let input_file = r#"
@@ -46,6 +32,7 @@ fn read_file() -> Result<Table> {
         let mut fields=HashMap::new();
         let map=record.as_object().unwrap();
         for entry in map {
+            // FIXME: unnecessary clone, i'd like to move the ownership
             fields.insert(entry.0.clone(),entry.1.clone());
         }
         records.push(Record { fields});
