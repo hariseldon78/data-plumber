@@ -1,0 +1,34 @@
+[
+	{
+		"id" : "4a93e668-825d-4842-a478-ede80b9f748d",
+		"title" : "termConditionCompany",
+		"content" : "test1",
+		"creation_date" : "2022-12-05 22:37:51",
+		"target" : "COMPANY",
+		"languageId" : "ita"
+	},
+	{
+		"id" : "4b78e234-825d-4842-a478-ede80b9f328a",
+		"title" : "termConditionCompany",
+		"content" : "test2",
+		"creation_date" : "2022-12-05 22:37:51",
+		"target" : "COMPANY",
+		"languageId" : "eng"
+	},
+	{
+		"id" : "ab7b223b-1234-4635-a610-97f4d9324fr5",
+		"title" : "termConditionUser",
+		"content" : "test3",
+		"creation_date" : "2022-07-28 22:37:51",
+		"target" : "USER",
+		"languageId" : "eng"
+	},
+	{
+		"id" : "cb7b223b-0005-4635-a610-97f4d9534fe1",
+		"title" : "termConditionUser",
+		"content" : "test4",
+		"creation_date" : "2022-07-28 22:37:51",
+		"target" : "USER",
+		"languageId" : "ita"
+	}
+]

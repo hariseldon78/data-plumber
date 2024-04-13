@@ -1,21 +1,13 @@
 use crate::state::{Record, Table};
 use std::collections::HashMap;
-// use crate::report;
+use std::fs::read_to_string;
+use crate::report;
 use serde_json::{Value,Result};
-pub fn read_file() -> Result<Table> {
-    let input_file = r#"
-[
-  {
-    "a": 1,
-    "b": "x"
-  },
-  {
-    "a": 3,
-    "b": "y"
-  }
-]"#;
+
+pub fn read_file(path: String) -> Result<Table> {
+    let input_file = read_to_string(path).unwrap();
     println!("{}",&input_file);
-    let v: Value = serde_json::from_str(input_file)?;
+    let v: Value = serde_json::from_str(input_file.as_str())?;
 
     // Create fields and records from the parsed JSON
     let mut records: Vec<Record> = vec![];
