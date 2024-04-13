@@ -1,18 +1,18 @@
 #![allow(unused_variables)]
+use serde_json::{Result, Value};
+use std::collections::HashMap;
 use std::fmt::Debug;
 
-#[derive(Debug)]
-struct Field {
-    name: String,
-    value: String,
-}
-
+// #[derive(Debug)]
+// struct Field {
+//     name: String,
+//     value: String,
+// }
 
 #[derive(Debug)]
 struct Record {
-    fields: Vec<Field>,
+    fields: HashMap<String, Value>,
 }
-
 
 #[derive(Debug)]
 struct Table {
@@ -25,24 +25,45 @@ struct State {
     tables: Vec<Table>,
 }
 
+fn read_file() -> Result<Table> {
+    let input_file = r#"
+[
+  {
+    "a": 1,
+    "b": "x"
+  },
+  {
+    "a": 3,
+    "b": "y"
+  }
+]"#;
+    report(&input_file);
+    let v: Value = serde_json::from_str(input_file)?;
 
-
-fn main() {
-    let f1 = Field {
-        name: String::from("a"),
-        value: String::from("1"),
-    };
-    let r1 = Record {
-        fields: vec![f1]
-    };
-    let t = Table {
-        name:String::from("Example"),
-        records: vec![r1]
+    // Create fields and records from the parsed JSON
+    let mut records: Vec<Record> = vec![];
+    for record in v.as_array().unwrap() {
+        let mut fields=HashMap::new();
+        let map=record.as_object().unwrap();
+        for entry in map {
+            fields.insert(entry.0.clone(),entry.1.clone());
+        }
+        records.push(Record { fields});
     };
 
-    report(&t);
+    // Construct a Table
+    let table = Table {
+        name: "ExampleTable".to_string(),
+        records,
+    };
+
+    Ok(table)
 }
 
-fn report<T:Debug>(x:&T){
-    println!("{:?}",x);
+fn main() {
+    report(&read_file().unwrap());
+}
+
+fn report<T: Debug>(x: &T) {
+    println!("{:?}", x);
 }
