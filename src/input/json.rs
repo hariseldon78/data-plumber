@@ -1,4 +1,4 @@
-use crate::state::{Record, Table};
+use crate::state::{Record, Table, Variant};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs::read_to_string;
@@ -17,7 +17,7 @@ pub fn read_json_file(path: String) -> Result<Table,String> {
         let map = record.as_object().unwrap();
         for entry in map {
             // FIXME: unnecessary clone, i'd like to move the ownership
-            fields.insert(entry.0.clone(), entry.1.clone());
+            fields.insert(entry.0.clone(), Variant::from_serde_value(&entry.1.clone()));
         }
         records.push(Record { fields });
     }
