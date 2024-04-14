@@ -19,6 +19,11 @@ pub struct State {
     pub tables: Vec<Table>,
 }
 
+impl State {
+    pub fn find_table(&self, table_name: &str) -> Option<&Table> {
+        self.tables.iter().find(|t| t.name == table_name)
+    }
+}
 #[derive(Debug)]
 pub enum Variant {
     Null,

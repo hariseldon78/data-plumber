@@ -1,4 +1,4 @@
-use crate::state::{Record, Table, Variant};
+use crate::state::{Record, Table, Variant,State,Process};
 use mysql::prelude::*;
 use mysql::*;
 use serde_json::Value;
@@ -6,29 +6,22 @@ use std::collections::HashMap;
 use std::result::Result;
 
 pub struct InputMysql {
-    pub url: String,
-    pub query: String,
+    node_name: String,
+    url: String,
+    query: String,
 }
 
 
-pub trait Configurable {
-    fn from_config(config: &Value) -> Self;
-}
-impl Configurable for InputMysql {
-    fn from_config(config: &Value) -> InputMysql {
+impl Process for InputMysql {
+    fn from_config(node_name: String, config: &Value) -> Self {
         InputMysql {
+            node_name,
             url: String::from(config["url"].as_str().unwrap()),
             query: String::from(config["query"].as_str().unwrap()),
         }
     }
-}
-
-pub trait InputNode {
-    fn run(&self) -> Result<Table, String>;
-}
-impl InputNode for InputMysql {
-    fn run(&self) -> Result<Table, String> {
-        println!("read_mysql_query({},{})", self.url, self.query);
+    fn run(&self,state:&mut State){
+        // println!("read_mysql_query({},{})", self.url, self.query);
         let pool = Pool::new(self.url.as_str()).unwrap();
         let result = self.query.clone().run(&pool).unwrap();
         let mut records: Vec<Record> = vec![];
@@ -42,11 +35,11 @@ impl InputNode for InputMysql {
                     Variant::from_mysql_value(value.clone()),
                 );
             }
-            println!("{:#?}", fields);
+            // println!("{:#?}", fields);
             records.push(Record { fields })
         }
-        Ok(Table {
-            name: "unknown_name".to_string(),
+        state.tables.push(Table {
+            name: self.node_name.clone(),
             records,
         })
     }

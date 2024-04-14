@@ -9,7 +9,8 @@ mod state;
 
 use crate::input::json::read_json_file;
 use crate::input::mysql::*;
-use crate::output::write_sql;
+use crate::output::OutputSqlInserts;
+use crate::state::Process;
 
 use serde_json::Value;
 
@@ -20,12 +21,16 @@ fn main() {
     let rdr = std::fs::File::open(config_file_name).unwrap();
     let config: Value = serde_json::from_reader(rdr).unwrap();
 
-    // let table=read_json_file(String::from("tests/input.json")).unwrap();
-    let node1=InputMysql::from_config(&config["mysql_input"]);
-    let table = node1.run().unwrap();
-    // report(&table);
-    let res = write_sql(&table).unwrap();
-    println!("{}", &res);
+    let mut state = state::State { tables: Vec::new() };
+
+    let node1 = InputMysql::from_config("input1".to_string(), &config["input1"]);
+    node1.run(&mut state);
+
+    let node2 = OutputSqlInserts::from_config("output1".to_string(), &config["output1"]);
+    node2.run(&mut state);
+
+    // let res = write_sql(&state).unwrap();
+    // println!("{}", &res);
 }
 
 // fn report<T: Debug>(x: &T) {

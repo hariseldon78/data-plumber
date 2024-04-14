@@ -399,6 +399,7 @@ dependencies = [
 name = "data-plumber"
 version = "0.1.0"
 dependencies = [
+ "itertools",
  "mysql",
  "serde_json",
 ]
