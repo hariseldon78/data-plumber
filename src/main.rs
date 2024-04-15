@@ -7,17 +7,14 @@ mod input;
 mod output;
 mod state;
 
-use crate::input::json::read_json_file;
-use crate::input::mysql::*;
-use crate::output::OutputSqlInserts;
-use crate::state::Process;
+use crate::input::*;
+use crate::output::*;
+use crate::state::*;
 
 use serde_json::Value;
 
 fn main() {
-    // get config file name from first argument
     let config_file_name = std::env::args().nth(1).unwrap();
-    // read configuration from config.json
     let rdr = std::fs::File::open(config_file_name).unwrap();
     let config: Value = serde_json::from_reader(rdr).unwrap();
 
@@ -28,11 +25,4 @@ fn main() {
 
     let node2 = OutputSqlInserts::from_config("output1".to_string(), &config["output1"]);
     node2.run(&mut state);
-
-    // let res = write_sql(&state).unwrap();
-    // println!("{}", &res);
 }
-
-// fn report<T: Debug>(x: &T) {
-//     println!("{:#?}", x);
-// }
