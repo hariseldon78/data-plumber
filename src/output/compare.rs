@@ -1,4 +1,4 @@
-use crate::state::{read_config_field, Process, State, Table};
+use crate::state::{read_config_field, Process, State, Table, Factory};
 use itertools::Itertools;
 use serde_json::Value;
 use std::{cmp::Ordering, fs::File, result::Result};
@@ -12,6 +12,11 @@ pub struct OutputCompare {
 }
 
 impl Process for OutputCompare {
+    fn register(factory: &mut Factory) {
+        factory.register_process("output::compare-table".to_string(), |node_name, config| {
+            Box::new(Self::from_config(node_name, config))
+        })
+    }
     fn from_config(node_name: String, config: &Value) -> Self {
         OutputCompare {
             node_name,

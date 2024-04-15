@@ -1,4 +1,4 @@
-use crate::state::{Record, Table, Variant,State,Process};
+use crate::state::{Process, Record, State, Table, Variant, Factory};
 use mysql::prelude::*;
 use mysql::*;
 use serde_json::Value;
@@ -11,8 +11,12 @@ pub struct InputMysql {
     query: String,
 }
 
-
 impl Process for InputMysql {
+    fn register(factory: &mut Factory) {
+        factory.register_process("input::mysql".to_string(), |node_name, config| {
+            Box::new(Self::from_config(node_name, config))
+        })
+    }
     fn from_config(node_name: String, config: &Value) -> Self {
         InputMysql {
             node_name,
@@ -20,7 +24,7 @@ impl Process for InputMysql {
             query: String::from(config["query"].as_str().unwrap()),
         }
     }
-    fn run(&self,state:&mut State){
+    fn run(&self, state: &mut State) {
         // println!("read_mysql_query({},{})", self.url, self.query);
         let pool = Pool::new(self.url.as_str()).unwrap();
         let result = self.query.clone().run(&pool).unwrap();

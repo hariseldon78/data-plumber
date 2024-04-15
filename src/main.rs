@@ -23,10 +23,14 @@ fn main()->Result<(),&'static str> {
     let rdr = std::fs::File::open(config_file_name.unwrap()).unwrap();
     let config: Value = serde_json::from_reader(rdr).unwrap();
     let mut state = state::State { tables: Vec::new() };
+    let mut factory = Factory::new();
+    InputMysql::register(&mut factory);
+    OutputSqlInserts::register(&mut factory);
+    OutputCompare::register(&mut factory);
 
     for (key, value) in config.as_object().unwrap() {
         println!("Running node {}", key);
-        let node = Factory::create_node(key.clone(), &config[key]);
+        let node = factory.create_node(key.clone(), &config[key]);
         node.run(&mut state);
     }
     Ok(())
