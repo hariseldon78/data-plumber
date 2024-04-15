@@ -126,7 +126,7 @@ impl Process for OutputCompare {
                     ()
                 }
                 (None, None) => {
-                    break;
+                    break; //exit loop
                 }
             }
         }
