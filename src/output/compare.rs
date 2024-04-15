@@ -28,8 +28,8 @@ impl Process for OutputCompare {
         let mut differences: Vec<String> = vec![];
         let mut sorted1 = t1.records.iter().sorted_by(|a, b| {
             Ord::cmp(
-                b.fields[self.identity_field.as_str()].to_string().as_str(),
                 a.fields[self.identity_field.as_str()].to_string().as_str(),
+                b.fields[self.identity_field.as_str()].to_string().as_str(),
             )
         });
         let mut sorted2 = t2.records.iter().sorted_by(|a, b| {
@@ -48,10 +48,20 @@ impl Process for OutputCompare {
                         r2.fields[self.identity_field.as_str()].to_string().as_str(),
                     ) {
                         Ordering::Less => {
+                            differences.push(format!(
+                                "Extra in {}: {} - a",
+                                self.input1,
+                                r1.fields[self.identity_field.as_str()]
+                            ));
                             it1 = sorted1.next();
                             ()
                         }
                         Ordering::Greater => {
+                            differences.push(format!(
+                                "Extra in {}: {} - b",
+                                self.input2,
+                                r2.fields[self.identity_field.as_str()]
+                            ));
                             it2 = sorted2.next();
                             ()
                         }
@@ -99,7 +109,7 @@ impl Process for OutputCompare {
                 }
                 (Some(r1), None) => {
                     differences.push(format!(
-                        "Extra in {}: {}",
+                        "Extra in {}: {} - c",
                         self.input1,
                         r1.fields[self.identity_field.as_str()]
                     ));
@@ -108,7 +118,7 @@ impl Process for OutputCompare {
                 }
                 (None, Some(r2)) => {
                     differences.push(format!(
-                        "Extra in {}: {}",
+                        "Extra in {}: {} - d",
                         self.input2,
                         r2.fields[self.identity_field.as_str()]
                     ));
