@@ -1,0 +1,13 @@
+{
+    "input1": {
+        "driver": "input::mysql",
+        "url": "mysql://<user>:<password>@<domain.com>:<port>/<dbname>",
+        "query": "select * from <table_name> where <condition>"
+    },
+    "output1": {
+        "driver": "output::sql-inserts",
+        "input": "input1",
+        "path": "output.sql",
+        "table-name": "<outdbname>.<out_table_name>"
+    }
+}

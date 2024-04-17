@@ -1,4 +1,4 @@
-use crate::state::{Process, State, Table, Factory};
+use crate::state::{read_config_field, Process, State, Table, Factory};
 use serde_json::Value;
 use std::{fs::File, result::Result};
 use itertools::Itertools;
@@ -31,9 +31,9 @@ impl Process for OutputSqlInserts {
     fn from_config(node_name: String, config: &Value) -> Self {
         OutputSqlInserts {
             node_name,
-            input: String::from(config["input"].as_str().unwrap()), // 
-            path: String::from(config["path"].as_str().unwrap()),
-            table_name: String::from(config["table-name"].as_str().unwrap()),
+            input: read_config_field(config,"input"),
+            path: read_config_field(config,"path"),
+            table_name: read_config_field(config,"table-name"),
         }
     }
     fn run(&self, state: &mut State) {

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
 use serde_json::{Value as SerdeValue, Number as SerdeNumber};
+use serde::{Serialize, Serializer};
 use mysql::Value as MysqlValue;
 
 
@@ -79,5 +80,13 @@ impl PartialEq for Variant {
             (Variant::Float(f1), Variant::Float(f2)) => f1 == f2,
             _ => false,
         }
+    }
+}
+
+impl Serialize for Variant {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer {
+        let serde=self.to_serde_value();
+        serde.serialize(serializer)
     }
 }

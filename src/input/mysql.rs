@@ -1,4 +1,4 @@
-use crate::state::{Process, Record, State, Table, Variant, Factory};
+use crate::state::{Process, Record, State, Table, Variant, Factory, read_config_field};
 use mysql::prelude::*;
 use mysql::*;
 use serde_json::Value;
@@ -20,8 +20,8 @@ impl Process for InputMysql {
     fn from_config(node_name: String, config: &Value) -> Self {
         InputMysql {
             node_name,
-            url: String::from(config["url"].as_str().unwrap()),
-            query: String::from(config["query"].as_str().unwrap()),
+            url: read_config_field(config,"url"),
+            query: read_config_field(config,"query"),
         }
     }
     fn run(&self, state: &mut State) {

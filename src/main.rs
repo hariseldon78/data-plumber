@@ -25,8 +25,10 @@ fn main()->Result<(),&'static str> {
     let mut state = state::State { tables: Vec::new() };
     let mut factory = Factory::new();
     InputMysql::register(&mut factory);
+    InputJson::register(&mut factory);
     OutputSqlInserts::register(&mut factory);
     OutputCompare::register(&mut factory);
+    OutputJson::register(&mut factory);
 
     for (key, value) in config.as_object().unwrap() {
         println!("Running node {}", key);
