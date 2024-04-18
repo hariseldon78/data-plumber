@@ -62,5 +62,5 @@ This project is licensed under the MIT License - see the LICENSE.md file for det
 
 ### Acknowledgements
 This project started an exercise for learning Rust.
-Thanks to WHP[whp.ai] for sponsoring part of this software.
+Thanks to [WHP](whp.ai) for sponsoring part of this software.
 Thanks to the Rust community for providing extensive documentation and resources.
