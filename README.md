@@ -17,6 +17,18 @@
 - **Supervision**: There is no direct writing to databases; this tool generates `.sql` files that users can execute manually to ensure data integrity.
 - **Memory Management**: Intermediate data is held in memory; the tool is not designed for huge datasets unless sufficient RAM is available.
 - **Flexibility**: Configuration of data pipelines is managed via simple JSON configuration files, making it easy to adapt to different data tasks.
+- **Restartability**: Some operations can be both expensive and slow, like prompting an LLM for every record in a table. The application should be restartable without wasting the work already done.
+
+## Implementation
+Every configured 'Process' is run in the listed order (no automatic dependency resolution yet) sequentially (for now). The input nodes will create a 
+table in memory with the same name of the process, so you can use that table as input for subsequent processes.
+
+## Use cases
+My basic needs are:
+- copy data between many databases, for example from dev to demo, or from Neo4j queries to mysql tables
+- compare tables in different databases
+- backup a table data before doing some edits
+- integrate a table with requests to an LLM
 
 ## Getting Started
 
@@ -34,13 +46,12 @@ cargo build --release
 ```
 
 ### Configuration
-
-To configure the tool, edit the config.json file in the root directory to match your specific data handling requirements.
+To configure the tool, edit a config.json file, possibly in a new directory, with your pipeline configuration.
 Usage
 
 Execute the tool using:
 ```bash
-cargo run --release
+<$PATH>/data-plumber config.json
 ```
 
 ### Contributing
@@ -50,5 +61,6 @@ Contributions are welcome! Please feel free to fork the repository, make your ch
 This project is licensed under the MIT License - see the LICENSE.md file for details.
 
 ### Acknowledgements
-This project is an exercise for learning Rust.
-Special thanks to the Rust community for providing extensive documentation and resources.
+This project started an exercise for learning Rust.
+Thanks to WHP[whp.ai] for sponsoring part of this software.
+Thanks to the Rust community for providing extensive documentation and resources.
