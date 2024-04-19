@@ -15,20 +15,24 @@ use crate::state::*;
 
 use serde_json::Value;
 
-fn main()->Result<(),&'static str> {
-    let config_file_name = std::env::args().nth(1);
-    if config_file_name == None {
-        return Err("Usage: data-plumber config.json");
-    }
-    let rdr = std::fs::File::open(config_file_name.unwrap()).unwrap();
-    let config: Value = serde_json::from_reader(rdr).unwrap();
-    let mut state = state::State { tables: Vec::new() };
-    let mut factory = Factory::new();
+fn register_nodes(mut factory: &mut Factory) {
     InputMysql::register(&mut factory);
     InputJson::register(&mut factory);
     OutputSqlInserts::register(&mut factory);
     OutputCompare::register(&mut factory);
     OutputJson::register(&mut factory);
+}
+
+fn main() -> Result<(), &'static str> {
+    let config_file_name = std::env::args().nth(1);
+    if config_file_name == None {
+        return Err("Usage: data-plumber config.json");
+    }
+    let mut factory = Factory::new();
+    register_nodes(&mut factory);
+    let rdr = std::fs::File::open(config_file_name.unwrap()).unwrap();
+    let config: Value = serde_json::from_reader(rdr).unwrap();
+    let mut state = state::State { tables: Vec::new() };
 
     for (key, value) in config.as_object().unwrap() {
         println!("Running node {}", key);
