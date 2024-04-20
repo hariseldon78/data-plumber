@@ -32,12 +32,25 @@ fn main() -> Result<(), &'static str> {
     register_nodes(&mut factory);
     let rdr = std::fs::File::open(config_file_name.unwrap()).unwrap();
     let config: Value = serde_json::from_reader(rdr).unwrap();
-    let mut state = state::State { tables: Vec::new() };
+    // if there is a file 'state.json' load the state, else init it
+    let mut state;
+    if std::fs::metadata("state.json").is_ok() {
+        state = State::load("state.json").unwrap();
 
-    for (key, value) in config.as_object().unwrap() {
+    } else {
+        state = State::new();
+        for (key, value) in config.as_object().unwrap() {
+            state.plan.push((key.clone(), value.clone()));
+        }
+    };
+
+    for (key, value) in state.plan.clone().iter() {
         println!("Running node {}", key);
         let node = factory.create_node(key.clone(), &config[key]);
         node.run(&mut state);
+        println!("Saving state");
+        state.plan.remove(0);
+        state.save("state.json").unwrap();
     }
     Ok(())
 }
