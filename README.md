@@ -3,11 +3,6 @@
 ## Introduction
 `data-plumber` is a Rust-based tool designed to facilitate the manual synchronization of different databases and data sources. This project serves as both a learning exercise in Rust and a practical solution to compare and manage data across various environments.
 
-### Supported Data Sources
-- **MySQL** databases from various URLs (implemented)
-- **Neo4j** databases (future implementation)
-- Local **JSON** files
-
 ## Features
 - **Compare Result Sets**: Allows comparison of data across different sources.
 - **Generate SQL Inserts**: Produces `.sql` files for database updates.
@@ -19,16 +14,27 @@
 - **Flexibility**: Configuration of data pipelines is managed via simple JSON configuration files, making it easy to adapt to different data tasks.
 - **Restartability**: Some operations can be both expensive and slow, like prompting an LLM for every record in a table. The application should be restartable without wasting the work already done.
 
-## Implementation
+### Implementation
 Every configured 'Process' is run in the listed order (no automatic dependency resolution yet) sequentially (for now). The input nodes will create a 
 table in memory with the same name of the process, so you can use that table as input for subsequent processes.
 
-## Use cases
+### Use cases
 My basic needs are:
 - copy data between many databases, for example from dev to demo, or from Neo4j queries to mysql tables
 - compare tables in different databases
 - backup a table data before doing some edits
 - integrate a table with requests to an LLM
+
+### Roadmap
+- ~~JSON input/output~~
+- ~~MYSQL input/output~~
+- ~~Compare tables~~
+- Neo4j input/output
+- REST API input/output
+- CSV input/output
+- JSON processing with jq-like syntax
+- Merging/composing tables (inner join, left join)
+- Data validation
 
 ## Getting Started
 
