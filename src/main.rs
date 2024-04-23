@@ -48,7 +48,6 @@ fn main() -> Result<(), &'static str> {
         println!("Running node {}", key);
         let node = factory.create_node(key.clone(), &config[key]);
         node.run(&mut state);
-        println!("Saving state");
         state.plan.remove(0);
         state.save("state.json").unwrap();
     }

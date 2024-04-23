@@ -3,3 +3,4 @@
 /config.json.old
 /output.sql
 /state.json
+/*.sql
