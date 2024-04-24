@@ -1,7 +1,7 @@
 use crate::state::{Process, Record, State, Table, Variant, Factory, read_config_field};
 use mysql::prelude::*;
 use mysql::*;
-use serde_json::Value;
+use serde_json::{Map,Value};
 use std::collections::HashMap;
 use std::result::Result;
 
@@ -17,11 +17,11 @@ impl Process for InputMysql {
             Box::new(Self::from_config(node_name, config))
         })
     }
-    fn from_config(node_name: String, config: &Value) -> Self {
+    fn from_config(node_name: String, config: Map<String,Value>) -> Self {
         InputMysql {
             node_name,
-            url: read_config_field(config,"url"),
-            query: read_config_field(config,"query"),
+            url: read_config_field(&config,"url"),
+            query: read_config_field(&config,"query"),
         }
     }
     fn run(&self, state: &mut State) {
@@ -34,6 +34,7 @@ impl Process for InputMysql {
             let map = row.unwrap();
             for column in map.columns_ref() {
                 let value = &map[column.name_str().as_ref()];
+                // println!("{}: {:?}", column.name_str(), value);
                 fields.insert(
                     column.name_str().to_string(),
                     Variant::from_mysql_value(value.clone()),

@@ -5,7 +5,7 @@ use serde::{Serialize, Serializer, Deserialize, Deserializer};
 use mysql::Value as MysqlValue;
 
 
-#[derive(Debug,Serialize,Deserialize)]
+#[derive(Debug)]
 pub enum Variant {
     Null,
     String(String),
@@ -15,6 +15,7 @@ pub enum Variant {
 
 impl Variant {
     pub fn from_serde_value(value: &SerdeValue) -> Variant {
+        
         match value {
             SerdeValue::Null => Variant::Null,
             SerdeValue::String(s) => Variant::String(s.clone()),
@@ -25,7 +26,10 @@ impl Variant {
                     Variant::Int(n.as_i64().unwrap())
                 }
             }
-            _ => panic!("Unsupported value type"),
+            _ => {
+                println!("value: {:?}", value);
+                panic!("Unsupported value type");
+            },
         }
     }
 
@@ -81,4 +85,69 @@ impl PartialEq for Variant {
             _ => false,
         }
     }
+}
+
+impl Serialize for Variant {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer {
+        let serde=self.to_serde_value();
+        serde.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Variant {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de> {
+        let serde=SerdeValue::deserialize(deserializer)?;
+        Ok(Variant::from_serde_value(&serde))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json;
+
+    #[test]
+    fn test_serialize_string() {
+        let v = Variant::String("hello".to_string());
+        let s = serde_json::to_string(&v).unwrap();
+        assert_eq!(s, "\"hello\"");
+    }
+
+    #[test]
+    fn test_deserialize_string() {
+        let s = "\"hello\"";
+        let v: Variant = serde_json::from_str(s).unwrap();
+        assert_eq!(v, Variant::String("hello".to_string()));
+    }
+
+    #[test]
+    fn test_serialize_int() {
+        let v = Variant::Int(123);
+        let s = serde_json::to_string(&v).unwrap();
+        assert_eq!(s, "123");
+    }
+
+    #[test]
+    fn test_deserialize_int() {
+        let s = "123";
+        let v: Variant = serde_json::from_str(s).unwrap();
+        assert_eq!(v, Variant::Int(123));
+    }
+
+    #[test]
+    fn test_serialize_float() {
+        let v = Variant::Float(123.45);
+        let s = serde_json::to_string(&v).unwrap();
+        assert_eq!(s, "123.45");
+    }
+
+    #[test]
+    fn test_deserialize_float() {
+        let s = "123.45";
+        let v: Variant = serde_json::from_str(s).unwrap();
+        assert_eq!(v, Variant::Float(123.45));
+    }
+
 }

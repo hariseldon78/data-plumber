@@ -7,5 +7,5 @@ pub use variant::*;
 mod factory;
 pub use factory::*;
 
-mod pipeline;
-pub use pipeline::*;
+mod config;
+pub use config::*;

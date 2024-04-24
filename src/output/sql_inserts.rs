@@ -1,5 +1,5 @@
 use crate::state::{read_config_field, Process, State, Table, Factory};
-use serde_json::Value;
+use serde_json::{Map,Value};
 use std::{fs::File, result::Result};
 use itertools::Itertools;
 
@@ -28,12 +28,12 @@ impl Process for OutputSqlInserts {
             Box::new(Self::from_config(node_name, config))
         })
     }
-    fn from_config(node_name: String, config: &Value) -> Self {
+    fn from_config(node_name: String, config: Map<String,Value>) -> Self {
         OutputSqlInserts {
             node_name,
-            input: read_config_field(config,"input"),
-            path: read_config_field(config,"path"),
-            table_name: read_config_field(config,"table-name"),
+            input: read_config_field(&config,"input"),
+            path: read_config_field(&config,"path"),
+            table_name: read_config_field(&config,"table-name"),
         }
     }
     fn run(&self, state: &mut State) {

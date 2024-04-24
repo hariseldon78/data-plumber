@@ -29,12 +29,13 @@ My basic needs are:
 - ~~JSON input/output~~
 - ~~MYSQL input/output~~
 - ~~Compare tables~~
+- Configuration templates
 - Neo4j input/output
-- REST API input/output
-- CSV input/output
+- Data validation
 - data processing with jq-like syntax
 - Merging/composing tables (inner join, left join)
-- Data validation
+- REST API input/output
+- CSV input/output
 
 ## Getting Started
 

@@ -1,5 +1,5 @@
 use crate::state::{Record, Table, State, Variant, read_config_field, Process, Factory};
-use serde_json::Value;
+use serde_json::{Map,Value};
 use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::result::Result;
@@ -15,10 +15,10 @@ impl Process for InputJson {
             Box::new(Self::from_config(node_name, config))
         })
     }
-    fn from_config(node_name: String, config: &Value) -> Self {
+    fn from_config(node_name: String, config: Map<String,Value>) -> Self {
         InputJson {
             node_name,
-            path: read_config_field(config,"path"),
+            path: read_config_field(&config,"path"),
         }
     }
     fn run(&self, state: &mut State) {
