@@ -1,11 +1,11 @@
-use crate::state::{Config,Variant};
+use crate::state::{Config, Variant};
 use mysql::Value as MysqlValue;
 use serde::de::{MapAccess, Visitor};
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Number as SerdeNumber, Value as SerdeValue};
 use std::collections::HashMap;
-use std::fmt::{Debug,Formatter};
+use std::fmt::{Debug, Formatter};
 
 #[derive(Debug)]
 pub struct Record {
@@ -118,11 +118,7 @@ mod tests {
         // Serialize the Record
         let serialized = dbg!(serde_json::to_string(&record).expect("Failed to serialize"));
 
-        assert_eq!(
-            serialized,
-            r#"{"name":"Alice"}"#
-        );
-
+        assert_eq!(serialized, r#"{"name":"Alice"}"#);
     }
 
     #[test]
@@ -135,10 +131,7 @@ mod tests {
         // Serialize the Record
         let serialized = dbg!(serde_json::to_string(&record).expect("Failed to serialize"));
 
-        assert_eq!(
-            serialized,
-            r#"{"age":30}"#
-        );
+        assert_eq!(serialized, r#"{"age":30}"#);
     }
 
     #[test]
@@ -151,10 +144,7 @@ mod tests {
         // Serialize the Record
         let serialized = dbg!(serde_json::to_string(&record).expect("Failed to serialize"));
 
-        assert_eq!(
-            serialized,
-            r#"{"height":5.9}"#
-        );
+        assert_eq!(serialized, r#"{"height":5.9}"#);
     }
 
     #[test]
@@ -172,11 +162,18 @@ mod tests {
         println!("Serialized: {}", serialized);
 
         // Deserialize the Record
-        let deserialized: Record = serde_json::from_str(&serialized).expect("Failed to deserialize");
+        let deserialized: Record =
+            serde_json::from_str(&serialized).expect("Failed to deserialize");
 
         // Check if the deserialized Record matches the original
         assert_eq!(deserialized.fields.get("age"), Some(&Variant::Int(30)));
-        assert_eq!(deserialized.fields.get("name"), Some(&Variant::String("Alice".to_string())));
-        assert_eq!(deserialized.fields.get("height"), Some(&Variant::Float(5.9)));
+        assert_eq!(
+            deserialized.fields.get("name"),
+            Some(&Variant::String("Alice".to_string()))
+        );
+        assert_eq!(
+            deserialized.fields.get("height"),
+            Some(&Variant::Float(5.9))
+        );
     }
 }

@@ -6,3 +6,6 @@ pub use compare::*;
 
 mod json;
 pub use json::*;
+
+mod asserts;
+pub use asserts::*;

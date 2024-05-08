@@ -23,7 +23,6 @@ fn register_nodes(mut factory: &mut Factory) {
     OutputJson::register(&mut factory);
 }
 
-
 fn main() -> Result<(), &'static str> {
     let config_file_name = std::env::args().nth(1);
     if config_file_name == None {
@@ -43,10 +42,10 @@ fn main() -> Result<(), &'static str> {
         match node {
             Some(node) => {
                 node.run(&mut state);
-            },
+            }
             None => {
                 continue;
-            },
+            }
         };
         state.plan.remove(0);
         state.save("state.json").unwrap();

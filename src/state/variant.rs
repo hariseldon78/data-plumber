@@ -1,9 +1,8 @@
+use mysql::Value as MysqlValue;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::{Number as SerdeNumber, Value as SerdeValue};
 use std::collections::HashMap;
 use std::fmt::Debug;
-use serde_json::{Value as SerdeValue, Number as SerdeNumber};
-use serde::{Serialize, Serializer, Deserialize, Deserializer};
-use mysql::Value as MysqlValue;
-
 
 #[derive(Debug)]
 pub enum Variant {
@@ -15,7 +14,6 @@ pub enum Variant {
 
 impl Variant {
     pub fn from_serde_value(value: &SerdeValue) -> Variant {
-        
         match value {
             SerdeValue::Null => Variant::Null,
             SerdeValue::String(s) => Variant::String(s.clone()),
@@ -29,7 +27,7 @@ impl Variant {
             _ => {
                 println!("value: {:?}", value);
                 panic!("Unsupported value type");
-            },
+            }
         }
     }
 
@@ -69,7 +67,7 @@ impl Variant {
 
 impl std::fmt::Display for Variant {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let serde=self.to_serde_value();
+        let serde = self.to_serde_value();
         write!(f, "{}", serde)
     }
 }
@@ -89,16 +87,20 @@ impl PartialEq for Variant {
 
 impl Serialize for Variant {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer {
-        let serde=self.to_serde_value();
+    where
+        S: Serializer,
+    {
+        let serde = self.to_serde_value();
         serde.serialize(serializer)
     }
 }
 
 impl<'de> Deserialize<'de> for Variant {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de> {
-        let serde=SerdeValue::deserialize(deserializer)?;
+    where
+        D: Deserializer<'de>,
+    {
+        let serde = SerdeValue::deserialize(deserializer)?;
         Ok(Variant::from_serde_value(&serde))
     }
 }
@@ -149,5 +151,4 @@ mod tests {
         let v: Variant = serde_json::from_str(s).unwrap();
         assert_eq!(v, Variant::Float(123.45));
     }
-
 }
