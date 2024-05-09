@@ -1,8 +1,8 @@
-use crate::state::{read_config_field, Factory, Process, State, Table,Record, Variant};
+use crate::state::{read_config_field, Factory, Process, Record, State, Table, Variant};
 use itertools::Itertools;
 use serde_json::{Map, Value};
-use std::io::Write;
 use std::collections::HashMap;
+use std::io::Write;
 use std::{cmp::Ordering, fs::File, result::Result};
 
 #[derive(Debug, PartialEq)]
@@ -53,67 +53,86 @@ impl AssertState {
         }
     }
 
-    fn check(&self, table: &Table) -> (bool, Vec<String>) {
-        let (result, error_messages) = match dbg!(self) {
+    fn check(&self, table: &Table) -> (bool, Vec<String>, Vec<String>) {
+        let (result, error_messages, description) = match self {
             AssertState::Empty => (
                 table.records.is_empty(),
                 vec!["table is not empty".to_string()],
+                vec!["to be empty".to_string()],
             ),
             AssertState::RowsCountLessThan(count) => (
                 table.records.len() < *count,
                 vec!["table has more rows than expected".to_string()],
+                vec![format!("to have less than {} rows", count).to_string()],
             ),
             AssertState::RowsCountEqual(count) => (
                 table.records.len() == *count,
                 vec!["table has different number of rows than expected".to_string()],
+                vec![format!("to have exactly {} rows", count).to_string()],
             ),
             AssertState::HasField(field_name) => {
+                let description = format!("to have field {}", field_name);
                 let has_field = table
                     .records
                     .iter()
                     .all(|record| record.fields.contains_key(field_name));
                 if has_field {
-                    (true, vec![])
+                    (true, vec![], vec![description])
                 } else {
                     (
                         false,
                         vec![format!("table does not have field {}", field_name)],
+                        vec![description],
                     )
                 }
             }
             AssertState::Not(state) => {
-                let (result, errors) = state.check(table);
-                (!result, errors)
+                let (result, errors, description) = state.check(table);
+                let mut description2 = vec!["not".to_string()];
+                for desc in description.iter() {
+                    description2.push(desc.clone());
+                }
+
+                if result {
+                    let error = format!("not ({})", description.join(", "));
+                    (false, vec![error], description2)
+                } else {
+                    (true, vec![], description2)
+                }
             }
             AssertState::Or(states) => {
-                let (result, errors) = states.iter().map(|state| state.check(table)).fold(
-                    (false, vec![]),
-                    |(acc_result, acc_errors), result| {
-                        (
-                            acc_result || result.0,
-                            acc_errors.into_iter().chain(result.1).collect(),
-                        )
-                    },
-                );
-                (result, errors)
+                let (result, errors, description) =
+                    states.iter().map(|state| state.check(table)).fold(
+                        (false, vec![], vec!["or".to_string()]),
+                        |(acc_result, acc_errors, acc_description), result| {
+                            (
+                                acc_result || result.0,
+                                acc_errors.into_iter().chain(result.1).collect(),
+                                acc_description.into_iter().chain(result.2).collect(),
+                            )
+                        },
+                    );
+                (result, errors, description)
             }
             AssertState::And(states) => {
-                let (result, errors) = states.iter().map(|state| state.check(table)).fold(
-                    (true, vec![]),
-                    |(acc_result, acc_errors), result| {
-                        (
-                            acc_result && result.0,
-                            acc_errors.into_iter().chain(result.1).collect(),
-                        )
-                    },
-                );
-                (result, errors)
+                let (result, errors, description) =
+                    states.iter().map(|state| state.check(table)).fold(
+                        (true, vec![], vec!["and".to_string()]),
+                        |(acc_result, acc_errors, acc_description), result| {
+                            (
+                                acc_result && result.0,
+                                acc_errors.into_iter().chain(result.1).collect(),
+                                acc_description.into_iter().chain(result.2).collect(),
+                            )
+                        },
+                    );
+                (result, errors, description)
             }
         };
         if result {
-            (true, vec![])
+            (true, vec![], description)
         } else {
-            (false, dbg!(error_messages))
+            (false, error_messages, description)
         }
     }
 }
@@ -160,7 +179,7 @@ impl Process for OutputAsserts {
 
         for assert in &self.asserts {
             let table = state.find_table(assert.table.as_str()).unwrap();
-            let (result, ass_errors) = assert.state.check(table);
+            let (result, ass_errors, _) = assert.state.check(table);
             if !result {
                 errors.push(format!(
                     "table {} failed assert: {:?}",
@@ -540,10 +559,10 @@ mod tests {
         process.run(&mut state);
 
         assert_eq!(
-            dbg!(state
+            state
                 .results_writer
                 .test_peek("test_results.txt")
-                .unwrap())
+                .unwrap()
                 .len(),
             1
         );
@@ -593,7 +612,7 @@ mod tests {
             .insert("name".to_string(), Variant::String("test2".to_string()));
         state.tables.push(Table {
             name: "table1".to_string(),
-            records: vec![rec1,rec2],
+            records: vec![rec1, rec2],
         });
         let process = OutputAsserts::from_config(
             "test".to_string(),
@@ -602,13 +621,12 @@ mod tests {
         process.run(&mut state);
 
         assert_eq!(
-            dbg!(state
+            state
                 .results_writer
                 .test_peek("test_results.txt")
-                .unwrap())
+                .unwrap()
                 .len(),
             1
         );
     }
-
 }
