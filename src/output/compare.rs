@@ -59,7 +59,6 @@ impl Process for OutputCompare {
                                 r1.fields[self.identity_field.as_str()]
                             ));
                             it1 = sorted1.next();
-                            ()
                         }
                         Ordering::Greater => {
                             differences.push(format!(
@@ -68,7 +67,6 @@ impl Process for OutputCompare {
                                 r2.fields[self.identity_field.as_str()]
                             ));
                             it2 = sorted2.next();
-                            ()
                         }
                         Ordering::Equal => {
                             //same key
@@ -108,7 +106,6 @@ impl Process for OutputCompare {
                             }
                             it1 = sorted1.next();
                             it2 = sorted2.next();
-                            ()
                         }
                     }
                 }
@@ -119,7 +116,6 @@ impl Process for OutputCompare {
                         r1.fields[self.identity_field.as_str()]
                     ));
                     it1 = sorted1.next();
-                    ()
                 }
                 (None, Some(r2)) => {
                     differences.push(format!(
@@ -128,7 +124,6 @@ impl Process for OutputCompare {
                         r2.fields[self.identity_field.as_str()]
                     ));
                     it2 = sorted2.next();
-                    ()
                 }
                 (None, None) => {
                     break; //exit loop

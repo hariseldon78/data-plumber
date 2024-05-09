@@ -8,10 +8,9 @@ where
     T: Iterator,
     T::Item: ToString,
 {
-    return x
-        .map(|key| key.to_string())
+    x.map(|key| key.to_string())
         .collect::<Vec<String>>()
-        .join(joiner.unwrap_or(","));
+        .join(joiner.unwrap_or(","))
 }
 
 pub struct OutputSqlInserts {

@@ -74,6 +74,6 @@ impl Factory {
             .as_str()
             .expect("driver field must be a string");
         let constructor = self.registry.get(driver).expect("Unknown driver");
-        return Some(constructor(node_name, config));
+        Some(constructor(node_name, config))
     }
 }

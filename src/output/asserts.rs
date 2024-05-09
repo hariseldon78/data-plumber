@@ -1,7 +1,8 @@
-use crate::state::{read_config_field, Factory, Process, State, Table};
+use crate::state::{read_config_field, Factory, Process, State, Table,Record, Variant};
 use itertools::Itertools;
 use serde_json::{Map, Value};
 use std::io::Write;
+use std::collections::HashMap;
 use std::{cmp::Ordering, fs::File, result::Result};
 
 #[derive(Debug, PartialEq)]
@@ -53,7 +54,7 @@ impl AssertState {
     }
 
     fn check(&self, table: &Table) -> (bool, Vec<String>) {
-        let (result, error_messages) = match self {
+        let (result, error_messages) = match dbg!(self) {
             AssertState::Empty => (
                 table.records.is_empty(),
                 vec!["table is not empty".to_string()],
@@ -90,7 +91,7 @@ impl AssertState {
                     |(acc_result, acc_errors), result| {
                         (
                             acc_result || result.0,
-                            acc_errors.into_iter().chain(result.1.into_iter()).collect(),
+                            acc_errors.into_iter().chain(result.1).collect(),
                         )
                     },
                 );
@@ -102,7 +103,7 @@ impl AssertState {
                     |(acc_result, acc_errors), result| {
                         (
                             acc_result && result.0,
-                            acc_errors.into_iter().chain(result.1.into_iter()).collect(),
+                            acc_errors.into_iter().chain(result.1).collect(),
                         )
                     },
                 );
@@ -112,7 +113,7 @@ impl AssertState {
         if result {
             (true, vec![])
         } else {
-            (false, error_messages)
+            (false, dbg!(error_messages))
         }
     }
 }
@@ -169,21 +170,22 @@ impl Process for OutputAsserts {
         }
 
         let file_name = format!("{}_results.txt", self.node_name);
-        let mut file = File::create(file_name).unwrap();
-        for error in errors {
-            file.write_all(error.as_bytes()).unwrap();
-            file.write_all("\n".as_bytes()).unwrap();
-        }
+        // let mut file = File::create(file_name).unwrap();
+        // for error in errors {
+        //     file.write_all(error.as_bytes()).unwrap();
+        //     file.write_all("\n".as_bytes()).unwrap();
+        // }
+        state.write_file(file_name.as_str(), &errors);
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json;
+    use crate::state::{Config, MemoryReader, MemoryWriter, Table};
 
     #[test]
-    fn test_deserialize_simple_state() {
+    fn test_deserialize_simple_assert_state() {
         let json_string = r#"
 {
   "state":{
@@ -198,7 +200,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_nested_state() {
+    fn test_deserialize_nested_assert_state() {
         let json_string = r#"
 {
   "state":{
@@ -330,4 +332,283 @@ mod tests {
             _ => panic!("wrong state"),
         }
     }
+
+    #[test]
+    fn test_assert_empty() {
+        let config = Config {
+            state_file: "state.json".to_string(),
+            template_file: "template.json".to_string(),
+        };
+
+        let pipeline = serde_json::from_str(
+            r#"{
+    "test": {
+        "driver":"output::asserts",
+        "asserts":[
+            {
+                "table":"table1",
+                "state":{
+                    "empty":""
+                }
+            }
+        ]
+    }
+}"#,
+        )
+        .unwrap();
+        let mut state = State::make(
+            &config,
+            &pipeline,
+            Some(Box::new(MemoryWriter::new())),
+            Some(Box::new(MemoryReader::new())),
+        );
+
+        state.tables.push(Table {
+            name: "table1".to_string(),
+            records: vec![],
+        });
+        let process = OutputAsserts::from_config(
+            "test".to_string(),
+            pipeline.get("test").unwrap().as_object().unwrap().clone(),
+        );
+        process.run(&mut state);
+
+        assert_eq!(
+            state
+                .results_writer
+                .test_peek("test_results.txt")
+                .unwrap()
+                .len(),
+            0
+        );
+    }
+
+    #[test]
+    fn test_assert_empty_fail() {
+        let config = Config {
+            state_file: "state.json".to_string(),
+            template_file: "template.json".to_string(),
+        };
+
+        let pipeline = serde_json::from_str(
+            r#"{
+    "test": {
+        "driver":"output::asserts",
+        "asserts":[
+            {
+                "table":"table1",
+                "state":{
+                    "empty":""
+                }
+            }
+        ]
+    }
+}"#,
+        )
+        .unwrap();
+        let mut state = State::make(
+            &config,
+            &pipeline,
+            Some(Box::new(MemoryWriter::new())),
+            Some(Box::new(MemoryReader::new())),
+        );
+
+        let mut rec1 = Record {
+            fields: HashMap::new(),
+        };
+        rec1.fields
+            .insert("name".to_string(), Variant::String("test".to_string()));
+        state.tables.push(Table {
+            name: "table1".to_string(),
+            records: vec![rec1],
+        });
+        let process = OutputAsserts::from_config(
+            "test".to_string(),
+            pipeline.get("test").unwrap().as_object().unwrap().clone(),
+        );
+        process.run(&mut state);
+
+        assert_eq!(
+            state
+                .results_writer
+                .test_peek("test_results.txt")
+                .unwrap()
+                .len(),
+            1
+        );
+    }
+
+    #[test]
+    fn test_assert_not_empty_and_less_than() {
+        let config = Config {
+            state_file: "state.json".to_string(),
+            template_file: "template.json".to_string(),
+        };
+
+        let pipeline = serde_json::from_str(
+            r#"{
+    "test": {
+        "driver":"output::asserts",
+        "asserts":[
+            {
+                "table":"table1",
+                "state":{
+                    "and":[
+                        {"not":{"empty":""}},
+                        {"rows-count-less-than": 2}
+                    ]
+                }
+            }
+        ]
+    }
+}"#,
+        )
+        .unwrap();
+        let mut state = State::make(
+            &config,
+            &pipeline,
+            Some(Box::new(MemoryWriter::new())),
+            Some(Box::new(MemoryReader::new())),
+        );
+
+        let mut rec1 = Record {
+            fields: HashMap::new(),
+        };
+        rec1.fields
+            .insert("name".to_string(), Variant::String("test".to_string()));
+        state.tables.push(Table {
+            name: "table1".to_string(),
+            records: vec![rec1],
+        });
+        let process = OutputAsserts::from_config(
+            "test".to_string(),
+            pipeline.get("test").unwrap().as_object().unwrap().clone(),
+        );
+        process.run(&mut state);
+
+        assert_eq!(
+            state
+                .results_writer
+                .test_peek("test_results.txt")
+                .unwrap()
+                .len(),
+            0
+        );
+    }
+
+    #[test]
+    fn test_assert_not_empty_and_less_than_fail1() {
+        let config = Config {
+            state_file: "state.json".to_string(),
+            template_file: "template.json".to_string(),
+        };
+
+        let pipeline = serde_json::from_str(
+            r#"{
+    "test": {
+        "driver":"output::asserts",
+        "asserts":[
+            {
+                "table":"table1",
+                "state":{
+                    "and":[
+                        {"not":{"empty":""}},
+                        {"rows-count-less-than": 2}
+                    ]
+                }
+            }
+        ]
+    }
+}"#,
+        )
+        .unwrap();
+        let mut state = State::make(
+            &config,
+            &pipeline,
+            Some(Box::new(MemoryWriter::new())),
+            Some(Box::new(MemoryReader::new())),
+        );
+
+        state.tables.push(Table {
+            name: "table1".to_string(),
+            records: vec![],
+        });
+        let process = OutputAsserts::from_config(
+            "test".to_string(),
+            pipeline.get("test").unwrap().as_object().unwrap().clone(),
+        );
+        process.run(&mut state);
+
+        assert_eq!(
+            dbg!(state
+                .results_writer
+                .test_peek("test_results.txt")
+                .unwrap())
+                .len(),
+            1
+        );
+    }
+    #[test]
+    fn test_assert_not_empty_and_less_than_fail2() {
+        let config = Config {
+            state_file: "state.json".to_string(),
+            template_file: "template.json".to_string(),
+        };
+
+        let pipeline = serde_json::from_str(
+            r#"{
+    "test": {
+        "driver":"output::asserts",
+        "asserts":[
+            {
+                "table":"table1",
+                "state":{
+                    "and":[
+                        {"not":{"empty":""}},
+                        {"rows-count-less-than": 2}
+                    ]
+                }
+            }
+        ]
+    }
+}"#,
+        )
+        .unwrap();
+        let mut state = State::make(
+            &config,
+            &pipeline,
+            Some(Box::new(MemoryWriter::new())),
+            Some(Box::new(MemoryReader::new())),
+        );
+
+        let mut rec1 = Record {
+            fields: HashMap::new(),
+        };
+        rec1.fields
+            .insert("name".to_string(), Variant::String("test".to_string()));
+        let mut rec2 = Record {
+            fields: HashMap::new(),
+        };
+        rec2.fields
+            .insert("name".to_string(), Variant::String("test2".to_string()));
+        state.tables.push(Table {
+            name: "table1".to_string(),
+            records: vec![rec1,rec2],
+        });
+        let process = OutputAsserts::from_config(
+            "test".to_string(),
+            pipeline.get("test").unwrap().as_object().unwrap().clone(),
+        );
+        process.run(&mut state);
+
+        assert_eq!(
+            dbg!(state
+                .results_writer
+                .test_peek("test_results.txt")
+                .unwrap())
+                .len(),
+            1
+        );
+    }
+
 }

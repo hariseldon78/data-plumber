@@ -15,17 +15,17 @@ use crate::state::*;
 
 use serde_json::Value;
 
-fn register_nodes(mut factory: &mut Factory) {
-    InputMysql::register(&mut factory);
-    InputJson::register(&mut factory);
-    OutputSqlInserts::register(&mut factory);
-    OutputCompare::register(&mut factory);
-    OutputJson::register(&mut factory);
+fn register_nodes(factory: &mut Factory) {
+    InputMysql::register(factory);
+    InputJson::register(factory);
+    OutputSqlInserts::register(factory);
+    OutputCompare::register(factory);
+    OutputJson::register(factory);
 }
 
 fn main() -> Result<(), &'static str> {
     let config_file_name = std::env::args().nth(1);
-    if config_file_name == None {
+    if config_file_name.is_none() {
         return Err("Usage: data-plumber config.json");
     }
     let rdr = std::fs::File::open(config_file_name.unwrap()).unwrap();
@@ -34,7 +34,7 @@ fn main() -> Result<(), &'static str> {
     let mut factory = Factory::new(&config).unwrap();
     register_nodes(&mut factory);
 
-    let mut state = State::load_or_new(&config, &pipeline);
+    let mut state = State::load_or_make(&config, &pipeline);
 
     for (key, value) in state.plan.clone().iter() {
         println!("Running node {}", key);
