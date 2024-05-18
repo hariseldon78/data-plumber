@@ -1,4 +1,5 @@
 use crate::state::{read_config_field, Factory, Process, Record, State, Table, Variant};
+use crate::register_process;
 use itertools::Itertools;
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -148,11 +149,7 @@ pub struct OutputAsserts {
 }
 
 impl Process for OutputAsserts {
-    fn register(factory: &mut Factory) {
-        factory.register_process("output::asserts".to_string(), |node_name, config| {
-            Box::new(Self::from_config(node_name, config))
-        })
-    }
+    register_process!("output::asserts");
     fn from_config(node_name: String, config: Map<String, Value>) -> Self {
         let asserts = config
             .get("asserts")

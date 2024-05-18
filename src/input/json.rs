@@ -1,4 +1,5 @@
 use crate::state::{read_config_field, Factory, Process, Record, State, Table, Variant};
+use crate::register_process;
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::fs::read_to_string;
@@ -10,11 +11,7 @@ pub struct InputJson {
 }
 
 impl Process for InputJson {
-    fn register(factory: &mut Factory) {
-        factory.register_process("input::json".to_string(), |node_name, config| {
-            Box::new(Self::from_config(node_name, config))
-        })
-    }
+    register_process!("input::json");
     fn from_config(node_name: String, config: Map<String, Value>) -> Self {
         InputJson {
             node_name,

@@ -19,6 +19,18 @@ pub trait Process {
     fn run(&self, state: &mut State);
 }
 
+#[macro_export]
+macro_rules! register_process {
+    ($name:expr) => {
+        fn register(factory: &mut Factory) {
+            factory.register_process(stringify!($name).to_string(), |node_name, config| {
+                Box::new(Self::from_config(node_name, config))
+            })
+        }
+    };
+}
+
+
 pub struct Factory {
     registry:
         HashMap<String, Box<dyn Fn(String, Map<String, Value>) -> Box<dyn Process + 'static>>>,

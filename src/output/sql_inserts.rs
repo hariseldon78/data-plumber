@@ -1,4 +1,5 @@
 use crate::state::{read_config_field, Factory, Process, State, Table};
+use crate::register_process;
 use itertools::Itertools;
 use serde_json::{Map, Value};
 use std::{fs::File, result::Result};
@@ -21,11 +22,7 @@ pub struct OutputSqlInserts {
 }
 
 impl Process for OutputSqlInserts {
-    fn register(factory: &mut Factory) {
-        factory.register_process("output::sql-inserts".to_string(), |node_name, config| {
-            Box::new(Self::from_config(node_name, config))
-        })
-    }
+    register_process!("output::sql-inserts");
     fn from_config(node_name: String, config: Map<String, Value>) -> Self {
         OutputSqlInserts {
             node_name,

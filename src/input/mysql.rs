@@ -1,4 +1,5 @@
 use crate::state::{read_config_field, Factory, Process, Record, State, Table, Variant};
+use crate::register_process;
 use mysql::prelude::*;
 use mysql::*;
 use serde_json::{Map, Value};
@@ -12,11 +13,7 @@ pub struct InputMysql {
 }
 
 impl Process for InputMysql {
-    fn register(factory: &mut Factory) {
-        factory.register_process("input::mysql".to_string(), |node_name, config| {
-            Box::new(Self::from_config(node_name, config))
-        })
-    }
+    register_process!("input::mysql");
     fn from_config(node_name: String, config: Map<String, Value>) -> Self {
         InputMysql {
             node_name,
