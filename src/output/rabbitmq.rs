@@ -20,6 +20,7 @@ pub struct OutputRabbitMQ {
     pub url: String,
     pub body: String,
     pub exchange_options: HashMap<String, Value>,
+    pub dry_run: bool,
 }
 
 impl Process for OutputRabbitMQ {
@@ -41,11 +42,15 @@ impl Process for OutputRabbitMQ {
             url: read_config_field(&config, "url"),
             body: read_config_field(&config, "body"),
             exchange_options,
+            dry_run: config
+                .get("dry_run")
+                .unwrap_or(&Value::Bool(false))
+                .as_bool()
+                .unwrap(),
         }
     }
     fn run(&self, state: &mut State) {
         let table = state.find_table(&self.input).unwrap();
-
 
         async_global_executor::block_on(async {
             let conn = Connection::connect(&(self.url), ConnectionProperties::default())
@@ -72,7 +77,6 @@ impl Process for OutputRabbitMQ {
                     QueueDeclareOptions::default(),
                     exchange_args,
                 )
-
                 .await
                 .unwrap();
 
@@ -83,18 +87,22 @@ impl Process for OutputRabbitMQ {
                     let value = value.to_string();
                     payload = payload.replace(&format!("{{{{{}}}}}", key), &value.to_string());
                 }
-                println!("sending message to rabbitmq: {}", payload);
-                let confirm = channel_a
-                    .basic_publish(
-                        self.exchange.as_str(),
-                        self.routing_key.as_str(),
-                        BasicPublishOptions::default(),
-                        payload.as_bytes(),
-                        BasicProperties::default(),
-                    )
-                    .await
-                    .unwrap();
-                confirm.await.unwrap();
+                if self.dry_run {
+                    println!("[would be] sending message to rabbitmq: {}", payload);
+                } else {
+                    println!("sending message to rabbitmq: {}", payload);
+                    let confirm = channel_a
+                        .basic_publish(
+                            self.exchange.as_str(),
+                            self.routing_key.as_str(),
+                            BasicPublishOptions::default(),
+                            payload.as_bytes(),
+                            BasicProperties::default(),
+                        )
+                        .await
+                        .unwrap();
+                    confirm.await.unwrap();
+                }
             }
         });
     }
