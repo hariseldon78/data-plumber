@@ -57,7 +57,7 @@ impl Factory {
     where
         F: 'static + Fn(String, Map<String, Value>) -> Box<dyn Process>,
     {
-        println!("Registering {}", name);
+        println!("Registering module {}", name);
         self.registry.insert(name, Box::new(constructor));
     }
 
@@ -85,8 +85,8 @@ impl Factory {
         let driver = config["driver"]
             .as_str()
             .expect("driver field must be a string");
-        dbg!(driver);
-        dbg!(self.registry.keys());
+        // dbg!(driver);
+        // dbg!(self.registry.keys());
         let constructor = self
             .registry
             .get(driver)
