@@ -63,6 +63,15 @@ impl Variant {
             Variant::Float(f) => SerdeValue::Number(SerdeNumber::from_f64(*f).unwrap()),
         }
     }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            Variant::Null => "NULL".to_string(),
+            Variant::String(s) => format!("{}", s),
+            Variant::Int(i) => i.to_string(),
+            Variant::Float(f) => f.to_string(),
+        }
+    }
 }
 
 impl std::fmt::Display for Variant {
