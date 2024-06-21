@@ -149,7 +149,7 @@ pub struct OutputAsserts {
 }
 
 impl Process for OutputAsserts {
-    register_process!("output::asserts");
+    register_process!(output::asserts);
     fn from_config(node_name: String, config: Map<String, Value>) -> Self {
         let asserts = config
             .get("asserts")

@@ -22,7 +22,7 @@ pub struct OutputSqlInserts {
 }
 
 impl Process for OutputSqlInserts {
-    register_process!("output::sql-inserts");
+    register_process!(output::sql-inserts);
     fn from_config(node_name: String, config: Map<String, Value>) -> Self {
         OutputSqlInserts {
             node_name,

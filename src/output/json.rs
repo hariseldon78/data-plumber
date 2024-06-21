@@ -11,7 +11,7 @@ pub struct OutputJson {
 }
 
 impl Process for OutputJson {
-    register_process!("output::json");
+    register_process!(output::json);
     fn from_config(node_name: String, config: Map<String, Value>) -> Self {
         OutputJson {
             input: read_config_field(&config, "input"),

@@ -21,6 +21,7 @@ fn register_nodes(factory: &mut Factory) {
     OutputSqlInserts::register(factory);
     OutputCompare::register(factory);
     OutputJson::register(factory);
+    OutputRabbitMQ::register(factory);
 }
 
 fn main() -> Result<(), &'static str> {

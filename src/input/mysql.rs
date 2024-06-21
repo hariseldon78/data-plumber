@@ -13,7 +13,7 @@ pub struct InputMysql {
 }
 
 impl Process for InputMysql {
-    register_process!("input::mysql");
+    register_process!(input::mysql);
     fn from_config(node_name: String, config: Map<String, Value>) -> Self {
         InputMysql {
             node_name,

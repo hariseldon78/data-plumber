@@ -13,7 +13,7 @@ pub struct OutputCompare {
 }
 
 impl Process for OutputCompare {
-    register_process!("output::compare-table");
+    register_process!(output::compare-table);
     fn from_config(node_name: String, config: Map<String, Value>) -> Self {
         OutputCompare {
             node_name,

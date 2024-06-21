@@ -11,7 +11,7 @@ pub struct InputJson {
 }
 
 impl Process for InputJson {
-    register_process!("input::json");
+    register_process!(input::json);
     fn from_config(node_name: String, config: Map<String, Value>) -> Self {
         InputJson {
             node_name,

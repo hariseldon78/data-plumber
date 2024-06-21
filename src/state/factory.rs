@@ -30,7 +30,6 @@ macro_rules! register_process {
     };
 }
 
-
 pub struct Factory {
     registry:
         HashMap<String, Box<dyn Fn(String, Map<String, Value>) -> Box<dyn Process + 'static>>>,
@@ -58,6 +57,7 @@ impl Factory {
     where
         F: 'static + Fn(String, Map<String, Value>) -> Box<dyn Process>,
     {
+        println!("Registering {}", name);
         self.registry.insert(name, Box::new(constructor));
     }
 
@@ -85,7 +85,12 @@ impl Factory {
         let driver = config["driver"]
             .as_str()
             .expect("driver field must be a string");
-        let constructor = self.registry.get(driver).expect("Unknown driver");
+        dbg!(driver);
+        dbg!(self.registry.keys());
+        let constructor = self
+            .registry
+            .get(driver)
+            .expect(format!("Unknown driver {}", driver).as_str());
         Some(constructor(node_name, config))
     }
 }
